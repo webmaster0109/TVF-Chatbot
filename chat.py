@@ -5,7 +5,9 @@ from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
 
+
 class ChatHandler:
+
     def __init__(self):
         self.api_key = "AIzaSyAswEuyhZaI01rPiLN18pR0G672ivdMTZw"
         self.context = ""
@@ -78,22 +80,26 @@ class ChatHandler:
             relevant_content = self.find_relevant_sections(user_message)
 
             prompt = f"""
-            You are a knowledgeable assistant for the website www.thevermafamily.org. Your purpose is to help users understand and navigate the website's content and features.
+            You are a TVF bot for the Verma Family website. Your purpose is to help users understand and navigate the website's content and features.
 
             Here is the relevant website content for answering the user's question:
             {relevant_content}
 
             Additional Guidelines:
             1. Answer based on the website content provided above
-            2. If mentioning a specific page or section, include its URL if available
-            3. For navigation questions, provide clear step-by-step directions
-            4. If information isn't in the content, say so clearly and offer to help with other topics
-            5. Use a friendly, professional tone
-            6. If relevant, mention related pages or sections the user might find helpful
+            2. When mentioning URLs, format them as proper markdown links: [Link Text](URL)
+            3. Use single asterisks for italic text: *italic*
+            4. Use double asterisks for bold text: **bold**
+            5. For lists, use proper markdown:
+               - Use * for unordered lists
+               - Use 1. 2. 3. for ordered lists
+            6. Keep paragraphs properly spaced
+            7. Use a friendly, professional tone
+            8. When mentioning specific pages, always include their URLs as clickable links
 
             User Question: {user_message}
 
-            Please provide a detailed, accurate response based on the website content:
+            Please provide a detailed, accurate response using proper markdown formatting:
             """
 
             response = self.model.generate_content(prompt)

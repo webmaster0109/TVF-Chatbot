@@ -39,6 +39,25 @@
     background: var(--bs-secondary-bg);
 }
 
+.message-content a {
+    color: var(--bs-info);
+    text-decoration: underline;
+}
+
+.message-content a:hover {
+    color: var(--bs-info-text);
+    text-decoration: none;
+}
+
+.message-content p {
+    margin-bottom: 0.5rem;
+}
+
+.message-content ul, .message-content ol {
+    margin-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
 .user .message-content {
     background: var(--bs-primary);
     color: var(--bs-light);
@@ -63,7 +82,7 @@
         height: 100vh;
         border-radius: 0;
     }
-    
+
     .chat-messages {
         height: calc(100vh - 140px);
     }

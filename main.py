@@ -2,7 +2,7 @@ import os
 import logging
 from flask import Flask, render_template
 from flask_socketio import SocketIO
-from models import db, ChatMessage #Import from models
+from models import db, ChatMessage  #Import from models
 from chat import ChatHandler
 from scraper import get_website_content
 
@@ -28,9 +28,11 @@ socketio = SocketIO(app)
 # Initialize chat handler
 chat_handler = ChatHandler()
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @socketio.on('message')
 def handle_message(message):
@@ -38,17 +40,16 @@ def handle_message(message):
         response = chat_handler.get_response(message)
 
         # Store the message in database
-        chat_message = ChatMessage(
-            message=message,
-            response=response
-        )
+        chat_message = ChatMessage(message=message, response=response)
         db.session.add(chat_message)
         db.session.commit()
 
         socketio.emit('response', {'message': response})
     except Exception as e:
         logger.error(f"Error handling message: {str(e)}")
-        socketio.emit('error', {'message': 'An error occurred processing your request'})
+        socketio.emit('error',
+                      {'message': 'An error occurred processing your request'})
+
 
 if __name__ == '__main__':
     with app.app_context():
@@ -57,12 +58,16 @@ if __name__ == '__main__':
 
         # Define multiple starting URLs for the website
         start_urls = [
-            "https://www.thevermafamily.org",  # Main domain
-            "https://www.thevermafamily.org/blog",  # Blog section
-            "https://www.thevermafamily.org/about",  # About section
-            "https://www.thevermafamily.org/contact",  # Contact section
-            "https://www.thevermafamily.org/projects",  # Projects section
-            # Add more specific sections as needed
+            "https://www.thevermafamily.org",
+            "https://thevermafamily.org/about-us",
+            "https://thevermafamily.org/late-shrikant-verma",
+            "https://thevermafamily.org/late-veena-verma",
+            "https://thevermafamily.org/abhishek-verma",
+            "https://thevermafamily.org/anca-verma",
+            "https://thevermafamily.org/nicolle-verma",
+            "https://thevermafamily.org/aditeshwar-verma",
+            "https://thevermafamily.org/blogs/",
+            "https://thevermafamily.org/contact-us",
         ]
 
         # Load website content on startup with increased page limit
