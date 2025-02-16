@@ -55,9 +55,16 @@ if __name__ == '__main__':
         # Create database tables
         db.create_all()
 
-        # Load website content on startup
-        website_content = get_website_content("https://www.thevermafamily.org")
-        chat_handler.initialize_context(website_content)
+        # Load website content on startup with increased page limit
+        logger.info("Starting website content extraction...")
+        website_content = get_website_content("https://www.thevermafamily.org", max_pages=100)
+        logger.info("Website content extraction completed")
+
+        if website_content:
+            chat_handler.initialize_context(website_content)
+            logger.info("Chat handler initialized with website content")
+        else:
+            logger.error("Failed to extract website content")
 
     # Start server
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)

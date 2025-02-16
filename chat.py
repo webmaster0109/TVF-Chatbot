@@ -1,5 +1,7 @@
 import google.generativeai as genai
 import logging
+import re
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -7,6 +9,7 @@ class ChatHandler:
     def __init__(self):
         self.api_key = "AIzaSyAswEuyhZaI01rPiLN18pR0G672ivdMTZw"
         self.context = ""
+        self.page_sections = {}
         self.initialize_gemini()
 
     def initialize_gemini(self):
@@ -15,30 +18,60 @@ class ChatHandler:
         self.model = genai.GenerativeModel('gemini-pro')
 
     def initialize_context(self, website_content: str):
-        """Set the website content as context for the chatbot"""
+        """
+        Process and organize website content for better context handling.
+        Breaks down content into searchable sections.
+        """
         self.context = website_content
+        # Split content into sections based on delimiter
+        sections = re.split(r'\n=+\n', website_content)
+        for section in sections:
+            if section.strip():
+                # Extract page title if present
+                title_match = re.search(r'Page:\s*(.+?)\n', section)
+                if title_match:
+                    title = title_match.group(1).strip()
+                    self.page_sections[title] = section.strip()
+
+    def find_relevant_sections(self, query: str) -> str:
+        """Find most relevant content sections for the query."""
+        relevant_content = []
+        query_terms = set(query.lower().split())
+
+        for title, content in self.page_sections.items():
+            # Simple relevance check - can be improved with better algorithms
+            if any(term in content.lower() for term in query_terms):
+                relevant_content.append(content)
+
+        # If no specific sections found, use main page content
+        if not relevant_content and 'Home' in self.page_sections:
+            relevant_content.append(self.page_sections['Home'])
+
+        return "\n\n".join(relevant_content[:3])  # Limit to top 3 most relevant sections
 
     def get_response(self, user_message: str) -> str:
-        """Generate a response using Gemini API"""
+        """Generate a response using Gemini API with relevant context"""
         try:
+            # Find relevant content sections for the query
+            relevant_content = self.find_relevant_sections(user_message)
+
             prompt = f"""
-            You are a helpful and knowledgeable assistant for the website www.thevermafamily.org. Your purpose is to help users understand and navigate the website's content and features.
+            You are a knowledgeable assistant for the website www.thevermafamily.org. Your purpose is to help users understand and navigate the website's content and features.
 
-            Use the following website content to answer user questions accurately and comprehensively. If the information is available in the content, provide specific details and direct quotes when relevant. If asked about navigation, refer to specific sections or pages.
+            Here is the relevant website content for answering the user's question:
+            {relevant_content}
 
-            Website Content:
-            {self.context}
-
-            Important Guidelines:
-            1. If the information is in the content, provide detailed, accurate answers
-            2. If asked about a specific page or section, mention its location on the website
-            3. For navigation questions, provide clear directions
-            4. If information isn't available, politely say so and offer to help with other aspects
-            5. Keep responses friendly and professional
+            Additional Guidelines:
+            1. Answer based on the website content provided above
+            2. If mentioning a specific page or section, include its URL if available
+            3. For navigation questions, provide clear step-by-step directions
+            4. If information isn't in the content, say so clearly and offer to help with other topics
+            5. Use a friendly, professional tone
+            6. If relevant, mention related pages or sections the user might find helpful
 
             User Question: {user_message}
 
-            Please provide a helpful, accurate response based on the website content above:
+            Please provide a detailed, accurate response based on the website content:
             """
 
             response = self.model.generate_content(prompt)
