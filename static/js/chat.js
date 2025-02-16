@@ -37,7 +37,10 @@ document.addEventListener('DOMContentLoaded', function() {
             appendMessage('user', message);
 
             // Send message to server with current language
-            socket.emit('message', message);
+            socket.emit('message', {
+                text: message,
+                language: languageSelector.value
+            });
 
             // Clear input
             userInput.value = '';

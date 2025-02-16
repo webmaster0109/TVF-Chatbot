@@ -7,9 +7,7 @@ from langdetect import detect
 
 logger = logging.getLogger(__name__)
 
-
 class ChatHandler:
-
     def __init__(self):
         self.api_key = "AIzaSyAswEuyhZaI01rPiLN18pR0G672ivdMTZw"
         self.context = ""
@@ -20,7 +18,7 @@ class ChatHandler:
     def initialize_gemini(self):
         """Initialize the Gemini API client"""
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash')
+        self.model = genai.GenerativeModel('gemini-pro')
 
     def initialize_context(self, website_content: str):
         """
@@ -136,15 +134,10 @@ class ChatHandler:
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
             error_messages = {
-                'en':
-                "I apologize, but I'm having trouble generating a response right now. Please try again later.",
-                'hi':
-                "क्षमा करें, मैं अभी जवाब नहीं दे पा रहा हूं। कृपया बाद में पुनः प्रयास करें।",
-                'es':
-                "Lo siento, pero tengo problemas para generar una respuesta ahora. Por favor, inténtalo de nuevo más tarde.",
-                'fr':
-                "Je suis désolé, mais j'ai du mal à générer une réponse pour le moment. Veuillez réessayer plus tard.",
-                'de':
-                "Es tut mir leid, aber ich habe momentan Probleme, eine Antwort zu generieren. Bitte versuchen Sie es später erneut."
+                'en': "I apologize, but I'm having trouble generating a response right now. Please try again later.",
+                'hi': "क्षमा करें, मैं अभी जवाब नहीं दे पा रहा हूं। कृपया बाद में पुनः प्रयास करें।",
+                'es': "Lo siento, pero tengo problemas para generar una respuesta ahora. Por favor, inténtalo de nuevo más tarde.",
+                'fr': "Je suis désolé, mais j'ai du mal à générer une réponse pour le moment. Veuillez réessayer plus tard.",
+                'de': "Es tut mir leid, aber ich habe momentan Probleme, eine Antwort zu generieren. Bitte versuchen Sie es später erneut."
             }
             return error_messages.get(target_lang, error_messages['en'])

@@ -15,5 +15,4 @@ dependencies = [
     "langdetect>=1.0.9",
     "googletrans-py>=4.0.0",
     "sqlalchemy>=2.0.38",
-    "googletrans>=4.0.2",
 ]
