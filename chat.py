@@ -1,7 +1,7 @@
 import google.generativeai as genai
 import logging
 import re
-from typing import Optional
+from typing import Optional, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -9,7 +9,7 @@ class ChatHandler:
     def __init__(self):
         self.api_key = "AIzaSyAswEuyhZaI01rPiLN18pR0G672ivdMTZw"
         self.context = ""
-        self.page_sections = {}
+        self.page_sections: Dict[str, str] = {}
         self.initialize_gemini()
 
     def initialize_gemini(self):
@@ -20,34 +20,56 @@ class ChatHandler:
     def initialize_context(self, website_content: str):
         """
         Process and organize website content for better context handling.
-        Breaks down content into searchable sections.
+        Breaks down content into searchable sections and maintains a map of pages.
         """
         self.context = website_content
         # Split content into sections based on delimiter
         sections = re.split(r'\n=+\n', website_content)
         for section in sections:
             if section.strip():
-                # Extract page title if present
+                # Extract page title and URL if present
                 title_match = re.search(r'Page:\s*(.+?)\n', section)
+                url_match = re.search(r'URL:\s*(.+?)\n', section)
+
                 if title_match:
                     title = title_match.group(1).strip()
                     self.page_sections[title] = section.strip()
+                    logger.debug(f"Added content section for page: {title}")
 
     def find_relevant_sections(self, query: str) -> str:
-        """Find most relevant content sections for the query."""
+        """Find most relevant content sections for the query using keyword matching."""
+        if not query:
+            return self.page_sections.get('Home', '')
+
         relevant_content = []
         query_terms = set(query.lower().split())
 
+        # Score each section based on term matches
+        scored_sections = []
         for title, content in self.page_sections.items():
-            # Simple relevance check - can be improved with better algorithms
-            if any(term in content.lower() for term in query_terms):
-                relevant_content.append(content)
+            score = 0
+            content_lower = content.lower()
 
-        # If no specific sections found, use main page content
+            # Score based on title matches
+            if any(term in title.lower() for term in query_terms):
+                score += 5
+
+            # Score based on content matches
+            for term in query_terms:
+                score += content_lower.count(term)
+
+            if score > 0:
+                scored_sections.append((score, content))
+
+        # Sort by relevance score and take top 3
+        scored_sections.sort(reverse=True)
+        relevant_content = [content for _, content in scored_sections[:3]]
+
+        # If no matches found, include home page as fallback
         if not relevant_content and 'Home' in self.page_sections:
             relevant_content.append(self.page_sections['Home'])
 
-        return "\n\n".join(relevant_content[:3])  # Limit to top 3 most relevant sections
+        return "\n\n".join(relevant_content)
 
     def get_response(self, user_message: str) -> str:
         """Generate a response using Gemini API with relevant context"""

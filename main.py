@@ -55,9 +55,24 @@ if __name__ == '__main__':
         # Create database tables
         db.create_all()
 
+        # Define multiple starting URLs for the website
+        start_urls = [
+            "https://www.thevermafamily.org",  # Main domain
+            "https://www.thevermafamily.org/blog",  # Blog section
+            "https://www.thevermafamily.org/about",  # About section
+            "https://www.thevermafamily.org/contact",  # Contact section
+            "https://www.thevermafamily.org/projects",  # Projects section
+            # Add more specific sections as needed
+        ]
+
         # Load website content on startup with increased page limit
         logger.info("Starting website content extraction...")
-        website_content = get_website_content("https://www.thevermafamily.org", max_pages=100)
+        website_content = ""
+        for url in start_urls:
+            logger.info(f"Processing starting URL: {url}")
+            content = get_website_content(url, max_pages=100)
+            if content:
+                website_content += f"\n\n{content}"
         logger.info("Website content extraction completed")
 
         if website_content:
