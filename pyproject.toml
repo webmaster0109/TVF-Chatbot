@@ -12,4 +12,7 @@ dependencies = [
     "psycopg2-binary>=2.9.10",
     "trafilatura>=2.0.0",
     "google-generativeai>=0.8.4",
+    "langdetect>=1.0.9",
+    "googletrans-py>=4.0.0",
+    "sqlalchemy>=2.0.38",
 ]

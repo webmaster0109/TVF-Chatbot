@@ -35,20 +35,25 @@ def index():
 
 
 @socketio.on('message')
-def handle_message(message):
+def handle_message(data):
     try:
-        response = chat_handler.get_response(message)
+        if isinstance(data, dict):
+            message = data.get('text', '')
+            language = data.get('language', 'en')
+        else:
+            message = data
+            language = 'en'
 
-        # Store the message in database
-        chat_message = ChatMessage(message=message, response=response)
-        db.session.add(chat_message)
-        db.session.commit()
-
+        response = chat_handler.get_response(message, target_lang=language)
         socketio.emit('response', {'message': response})
     except Exception as e:
         logger.error(f"Error handling message: {str(e)}")
         socketio.emit('error',
                       {'message': 'An error occurred processing your request'})
+
+@socketio.on('set_language')
+def handle_language_change(language):
+    logger.info(f"Language changed to: {language}")
 
 
 if __name__ == '__main__':

@@ -3,11 +3,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatMessages = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
+    const languageSelector = document.getElementById('language-selector');
 
     // Configure marked.js to create clickable links
     marked.setOptions({
         breaks: true,
         gfm: true
+    });
+
+    // Handle language change
+    languageSelector.addEventListener('change', function() {
+        const selectedLanguage = this.value;
+        socket.emit('set_language', selectedLanguage);
+
+        // Add system message about language change
+        const messages = {
+            'en': 'Switched to English',
+            'hi': 'हिंदी में बदल गया',
+            'es': 'Cambiado a Español',
+            'fr': 'Changé en Français',
+            'de': 'Zu Deutsch gewechselt'
+        };
+        appendMessage('bot', messages[selectedLanguage] || 'Language changed');
     });
 
     // Handle form submission
@@ -19,8 +36,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add user message to chat
             appendMessage('user', message);
 
-            // Send message to server
-            socket.emit('message', message);
+            // Send message to server with current language
+            socket.emit('message', {
+                text: message,
+                language: languageSelector.value
+            });
 
             // Clear input
             userInput.value = '';

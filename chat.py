@@ -2,16 +2,17 @@ import google.generativeai as genai
 import logging
 import re
 from typing import Optional, Dict
+from googletrans import Translator
+from langdetect import detect
 
 logger = logging.getLogger(__name__)
 
-
 class ChatHandler:
-
     def __init__(self):
         self.api_key = "AIzaSyAswEuyhZaI01rPiLN18pR0G672ivdMTZw"
         self.context = ""
         self.page_sections: Dict[str, str] = {}
+        self.translator = Translator()
         self.initialize_gemini()
 
     def initialize_gemini(self):
@@ -37,6 +38,18 @@ class ChatHandler:
                     title = title_match.group(1).strip()
                     self.page_sections[title] = section.strip()
                     logger.debug(f"Added content section for page: {title}")
+
+    def translate_text(self, text: str, target_lang: str) -> str:
+        """Translate text to target language if needed."""
+        try:
+            if not text or target_lang == 'en':
+                return text
+
+            translated = self.translator.translate(text, dest=target_lang)
+            return translated.text
+        except Exception as e:
+            logger.error(f"Translation error: {str(e)}")
+            return text
 
     def find_relevant_sections(self, query: str) -> str:
         """Find most relevant content sections for the query using keyword matching."""
@@ -73,11 +86,18 @@ class ChatHandler:
 
         return "\n\n".join(relevant_content)
 
-    def get_response(self, user_message: str) -> str:
-        """Generate a response using Gemini API with relevant context"""
+    def get_response(self, user_message: str, target_lang: str = 'en') -> str:
+        """Generate a response using Gemini API with relevant context and translation"""
         try:
+            # Detect input language and translate to English if needed
+            detected_lang = detect(user_message)
+            if detected_lang != 'en':
+                translated_query = self.translate_text(user_message, 'en')
+            else:
+                translated_query = user_message
+
             # Find relevant content sections for the query
-            relevant_content = self.find_relevant_sections(user_message)
+            relevant_content = self.find_relevant_sections(translated_query)
 
             prompt = f"""
             You are a TVF bot for the Verma Family website. Your purpose is to help users understand and navigate the website's content and features.
@@ -97,14 +117,27 @@ class ChatHandler:
             7. Use a friendly, professional tone
             8. When mentioning specific pages, always include their URLs as clickable links
 
-            User Question: {user_message}
+            User Question: {translated_query}
 
             Please provide a detailed, accurate response using proper markdown formatting:
             """
 
             response = self.model.generate_content(prompt)
-            return response.text
+            response_text = response.text
+
+            # Translate response if needed
+            if target_lang != 'en':
+                response_text = self.translate_text(response_text, target_lang)
+
+            return response_text
 
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
-            return "I apologize, but I'm having trouble generating a response right now. Please try again later."
+            error_messages = {
+                'en': "I apologize, but I'm having trouble generating a response right now. Please try again later.",
+                'hi': "क्षमा करें, मैं अभी जवाब नहीं दे पा रहा हूं। कृपया बाद में पुनः प्रयास करें।",
+                'es': "Lo siento, pero tengo problemas para generar una respuesta ahora. Por favor, inténtalo de nuevo más tarde.",
+                'fr': "Je suis désolé, mais j'ai du mal à générer une réponse pour le moment. Veuillez réessayer plus tard.",
+                'de': "Es tut mir leid, aber ich habe momentan Probleme, eine Antwort zu generieren. Bitte versuchen Sie es später erneut."
+            }
+            return error_messages.get(target_lang, error_messages['en'])
