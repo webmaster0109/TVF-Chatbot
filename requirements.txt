@@ -1,0 +1,12 @@
+email-validator
+flask-socketio
+flask
+flask-sqlalchemy
+gunicorn
+psycopg2-binary
+trafilatura
+google-generativeai
+langdetect
+googletrans-py
+sqlalchemy
+googletrans
