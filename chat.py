@@ -18,7 +18,7 @@ class ChatHandler:
     def initialize_gemini(self):
         """Initialize the Gemini API client"""
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        self.model = genai.GenerativeModel('gemini-2.0-flash')
 
     def initialize_context(self, website_content: str):
         """

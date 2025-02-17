@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
 # Configure database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.sqlite"
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
@@ -46,6 +46,14 @@ def handle_message(data):
 
         response = chat_handler.get_response(message, target_lang=language)
         socketio.emit('response', {'message': response})
+
+        chat_message = ChatMessage(
+            message=message,
+            response=response
+        )
+        db.session.add(chat_message)
+        db.session.commit()
+        
     except Exception as e:
         logger.error(f"Error handling message: {str(e)}")
         socketio.emit('error',
@@ -64,15 +72,19 @@ if __name__ == '__main__':
         # Define multiple starting URLs for the website
         start_urls = [
             "https://www.thevermafamily.org",
-            "https://thevermafamily.org/about-us",
-            "https://thevermafamily.org/late-shrikant-verma",
-            "https://thevermafamily.org/late-veena-verma",
-            "https://thevermafamily.org/abhishek-verma",
-            "https://thevermafamily.org/anca-verma",
-            "https://thevermafamily.org/nicolle-verma",
-            "https://thevermafamily.org/aditeshwar-verma",
-            "https://thevermafamily.org/blogs/",
-            "https://thevermafamily.org/contact-us",
+            "https://www.thevermafamily.org/about-us",
+            "https://www.thevermafamily.org/late-shrikant-verma",
+            "https://en.wikipedia.org/wiki/Shrikant_Verma",
+            "https://www.thevermafamily.org/late-veena-verma",
+            "https://en.wikipedia.org/wiki/Veena_Verma_(politician)",
+            "https://www.thevermafamily.org/abhishek-verma",
+            "https://en.wikipedia.org/wiki/Abhishek_Verma_(arms_dealer)",
+            "https://www.thevermafamily.org/anca-verma",
+            "https://en.wikipedia.org/wiki/Anca_Verma",
+            "https://www.thevermafamily.org/nicolle-verma",
+            "https://www.thevermafamily.org/aditeshwar-verma",
+            "https://www.thevermafamily.org/blogs/",
+            "https://www.thevermafamily.org/contact-us",
         ]
 
         # Load website content on startup with increased page limit
