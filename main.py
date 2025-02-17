@@ -5,6 +5,7 @@ from flask_socketio import SocketIO
 from models import db, ChatMessage  #Import from models
 from chat import ChatHandler
 from scraper import get_website_content
+import socketio
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -23,7 +24,7 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 db.init_app(app)
 
 # Initialize Socket.IO
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize chat handler
 chat_handler = ChatHandler()
