@@ -10,3 +10,4 @@ langdetect
 googletrans-py
 sqlalchemy
 googletrans
+eventlet
